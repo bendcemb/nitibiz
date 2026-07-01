@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}nitibiz - Master Company{% endblock %}
+
+{% block content %}
+<header>
+    <h1>nitibiz</h1>
+    <p>Daily Report / Master Company Data</p>
+</header>
+
+<main>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Company ID</th>
+                    <th>Genre</th>
+                    <th>Company Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in company_data %}
+                <tr>
+                    <td class="company-id">{{ company.company_id }}</td>
+                    <td>
+                        {% if company.genre %}
+                            <span class="badge">{{ company.genre }}</span>
+                        {% else %}
+                            <span style="color: #9CA3AF;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ company.company }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 3rem; color: #6B7280;">
+                        {% if error %}
+                            <div style="color: #DC2626; font-weight: 600; margin-bottom: 1rem;">Connection Error</div>
+                            <code style="display: block; text-align: left; background: #FEE2E2; padding: 1rem; border-radius: 8px; color: #991B1B; font-size: 0.85rem; word-break: break-all;">{{ error }}</code>
+                        {% else %}
+                            No data available.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: nitibiz_app
+    ports:
+      - "5015:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
