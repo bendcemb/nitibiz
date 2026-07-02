@@ -1,16 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}nitibiz{% endblock %}</title>
+    <!-- Prevent favicon 404 error -->
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
-    
-    <div class="container fade-in">
-        {% block content %}{% endblock %}
+    <div class="app-layout">
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <div class="logo"></div>
+                <span>nitibiz</span>
+            </div>
+            <div class="navbar-menu">
+                <a href="#" class="nav-action">Profile</a>
+                <a href="#" class="nav-action">Logout</a>
+            </div>
+        </nav>
+
+        <div class="app-body">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
+                    <li class="nav-item"><a href="{{ url_for('company') }}" class="nav-link">Companies</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link">Daily Reports</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link">Settings</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <div class="container fade-in">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
     </div>
-    
 </body>
+
 </html>

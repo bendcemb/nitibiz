@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header>
+    <h1>nitibiz - Company</h1>
+</header>
+
+<main>
+    <div class="table-container fade-in" style="padding: 2rem; background: transparent; box-shadow: none;">
+
+        <!-- Two Tables Layout -->
+        <div class="split-view">
+            <!-- Table 1: master_company -->
+            <div class="table-card" id="masterTableCard">
+                <div class="table-card-header">
+                    <h2 class="table-title">Master Company</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="masterSearchInput" placeholder="Search master company..."
+                            style="padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #D1D5DB; font-size: 0.9rem; outline: none; width: 200px;">
+                        <button onclick="addMasterRow()"
+                            style="padding: 0.5rem 1rem; border-radius: 6px; background-color: #10B981; color: white; border: none; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                            + Add New
+                        </button>
+                    </div>
+                    <br>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company ID</th>
+                                <th>Genre</th>
+                                <th>Company Name</th>
+                                <th>Name (Eng)</th>
+                                <th style="width: 120px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="masterTableBody">
+                            {% for company in master_data %}
+                            <tr class="company-row">
+                                <td class="company-id">{{ company.company_id }}</td>
+                                <td>
+                                    <div class="view-mode">
+                                        {% if company.genre %}
+                                        <span class="badge">{{ company.genre }}</span>
+                                        {% else %}
+                                        <span style="color: #9CA3AF;" class="badge">-</span>
+                                        {% endif %}
+                                    </div>
+                                    <select class="edit-mode genre-input" style="display: none; padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+                                        <option value="" {% if not company.genre %}selected{% endif %}>- Select -</option>
+                                        <option value="company" {% if company.genre == 'company' %}selected{% endif %}>company</option>
+                                        <option value="condo" {% if company.genre == 'condo' %}selected{% endif %}>condo</option>
+                                        <option value="village" {% if company.genre == 'village' %}selected{% endif %}>village</option>
+                                    </select>
+                                </td>
+                                <td class="company-name-cell">
+                                    <span class="view-mode">{{ company.company }}</span>
+                                    <input type="text" class="edit-mode company-input" value="{{ company.company }}"
+                                        style="display: none; padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+                                </td>
+                                <td class="name-eng-cell">
+                                    <span class="view-mode" style="color: #4B5563;">{{ company.name_eng if
+                                        company.name_eng
+                                        else '-' }}</span>
+                                    <input type="text" class="edit-mode name-eng-input"
+                                        value="{{ company.name_eng if company.name_eng else '' }}"
+                                        style="display: none; padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+                                </td>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <div class="view-mode" style="display: flex; gap: 0.5rem; justify-content: center;">
+                                        <button onclick="editMasterRow(this)"
+                                            style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #E0E7FF; color: #4338CA; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500;">Edit</button>
+                                        <button onclick="deleteMasterRow(this)"
+                                            style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #FEE2E2; color: #DC2626; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500;">Delete</button>
+                                    </div>
+                                    <div class="edit-mode" style="display: none; gap: 0.5rem; justify-content: center;">
+                                        <button onclick="saveMasterRow(this)"
+                                            style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #10B981; color: white; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500;">Save</button>
+                                        <button onclick="cancelEditMasterRow(this)"
+                                            style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #F3F4F6; color: #4B5563; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500;">Cancel</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr id="emptyMasterRowPlaceholder">
+                                <td colspan="5" style="text-align: center; padding: 3rem; color: #6B7280;">
+                                    {% if error %}
+                                    <div style="color: #DC2626; font-weight: 600; margin-bottom: 1rem;">Connection Error
+                                    </div>
+                                    <code
+                                        style="display: block; text-align: left; background: #FEE2E2; padding: 1rem; border-radius: 8px; color: #991B1B; font-size: 0.85rem; word-break: break-all;">{{ error
+                            }}</code>
+                                    {% else %}
+                                    No data available.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Table 2: sbp_company -->
+            <div class="table-card" id="sbpTableCard">
+                <div class="table-card-header">
+                    <h2 class="table-title">SBP Company</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="sbpSearchInput" placeholder="Search sbp company..."
+                            style="padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #D1D5DB; font-size: 0.9rem; outline: none; width: 200px;">
+
+                        <!-- Bulk Edit Section -->
+                        <div
+                            style="display: flex; align-items: center; gap: 0.5rem; padding-left: 1rem; border-left: 1px solid #E5E7EB;">
+                            <input type="text" id="bulkNewCompanyId" placeholder="New ID for all..."
+                                style="padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #D1D5DB; font-size: 0.9rem; outline: none; width: 140px;">
+                            <button id="btnBulkApply"
+                                style="padding: 0.5rem 1rem; border-radius: 6px; background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: background-color 0.2s;">
+                                Apply to All
+                            </button>
+                        </div>
+                    </div>
+
+                    <label
+                        style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; white-space: nowrap;">
+                        <input type="checkbox" id="showEmptyOnlyCheckbox" style="cursor: pointer;">
+                        <span>แสดงเฉพาะที่ยังไม่ผูกข้อมูล</span>
+                    </label>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company ID</th>
+                                <th>New Company ID</th>
+                                <th>Company Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in sbp_data %}
+                            <tr class="company-row">
+                                <td class="company-id" data-company-id="{{ company.company_id }}">{{ company.company_id
+                                    }}
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="text" class="new-company-id-input"
+                                            value="{{ company.new_company_id if company.new_company_id else '' }}"
+                                            placeholder="-"
+                                            style="padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #D1D5DB; width: 120px; font-size: 0.85rem; outline: none; transition: all 0.2s;">
+                                        <span class="save-status"
+                                            style="display: none; color: #10B981; font-size: 1rem;">&#10003;</span>
+                                    </div>
+                                </td>
+                                <td class="company-name-cell">{{ company.company }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 3rem; color: #6B7280;">
+                                    {% if error %}
+                                    <div style="color: #DC2626; font-weight: 600; margin-bottom: 1rem;">Connection Error
+                                    </div>
+                                    <code
+                                        style="display: block; text-align: left; background: #FEE2E2; padding: 1rem; border-radius: 8px; color: #991B1B; font-size: 0.85rem; word-break: break-all;">{{ error
+                            }}</code>
+                                    {% else %}
+                                    No data available.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Setup search functionality for a specific table
+        function setupSearch(inputId, cardId, checkboxId = null) {
+            const input = document.getElementById(inputId);
+            const card = document.getElementById(cardId);
+            const checkbox = checkboxId ? document.getElementById(checkboxId) : null;
+
+            if (input && card) {
+                const rows = card.querySelectorAll('.company-row');
+
+                function filterRows() {
+                    const term = input.value.toLowerCase();
+                    const showEmptyOnly = checkbox ? checkbox.checked : false;
+
+                    rows.forEach(row => {
+                        const nameCell = row.querySelector('.company-name-cell');
+                        const nameEngCell = row.querySelector('.name-eng-cell');
+                        if (nameCell) {
+                            const text = nameCell.textContent.toLowerCase();
+                            const textEng = nameEngCell ? nameEngCell.textContent.toLowerCase() : '';
+                            let isMatch = text.includes(term) || textEng.includes(term);
+
+                            // If checkbox is checked, hide rows that already have an ID
+                            if (showEmptyOnly) {
+                                const inputField = row.querySelector('.new-company-id-input');
+                                if (inputField && inputField.value.trim() !== '') {
+                                    isMatch = false;
+                                }
+                            }
+
+                            row.style.display = isMatch ? '' : 'none';
+                        }
+                    });
+                }
+
+                input.addEventListener('keyup', filterRows);
+                if (checkbox) {
+                    checkbox.addEventListener('change', filterRows);
+                }
+            }
+        }
+
+        setupSearch('masterSearchInput', 'masterTableCard');
+        setupSearch('sbpSearchInput', 'sbpTableCard', 'showEmptyOnlyCheckbox');
+
+        // Handle AJAX updates for new_company_id
+        const inputs = document.querySelectorAll('.new-company-id-input');
+
+        inputs.forEach(input => {
+            // Save on blur or Enter
+            input.addEventListener('blur', saveChange);
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    input.blur(); // Trigger blur to save
+                }
+            });
+
+            function saveChange(e) {
+                const el = e.target;
+                const newCompanyId = el.value;
+                const row = el.closest('tr');
+                const companyIdCell = row.querySelector('.company-id');
+                const companyId = companyIdCell.getAttribute('data-company-id');
+                const statusIcon = row.querySelector('.save-status');
+
+                // Add loading state
+                el.style.borderColor = '#6366F1';
+
+                fetch('/api/update_sbp_company', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        company_id: companyId,
+                        new_company_id: newCompanyId
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            el.style.borderColor = '#10B981'; // Green
+                            statusIcon.style.display = 'inline-block';
+                            setTimeout(() => {
+                                el.style.borderColor = '#D1D5DB'; // Reset
+                                statusIcon.style.display = 'none';
+                            }, 2000);
+                        } else {
+                            el.style.borderColor = '#EF4444'; // Red
+                            console.error('Update failed:', data.error);
+                            alert('Error saving data: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        el.style.borderColor = '#EF4444'; // Red
+                        console.error('Network error:', error);
+                        alert('Network error while saving data.');
+                    });
+            }
+        });
+
+        // Bulk Apply Logic
+        const btnBulkApply = document.getElementById('btnBulkApply');
+        if (btnBulkApply) {
+            btnBulkApply.addEventListener('click', function () {
+                const bulkVal = document.getElementById('bulkNewCompanyId').value;
+                const sbpCard = document.getElementById('sbpTableCard');
+                const rows = sbpCard.querySelectorAll('.company-row');
+
+                // Gather all visible company IDs
+                const visibleIds = [];
+                const visibleInputs = [];
+
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const companyIdCell = row.querySelector('.company-id');
+                        if (companyIdCell) {
+                            visibleIds.push(companyIdCell.getAttribute('data-company-id'));
+                            visibleInputs.push(row.querySelector('.new-company-id-input'));
+                        }
+                    }
+                });
+
+                if (visibleIds.length === 0) {
+                    alert("No visible rows to update!");
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to update ${visibleIds.length} rows to '${bulkVal}'?`)) {
+                    return;
+                }
+
+                btnBulkApply.disabled = true;
+                btnBulkApply.textContent = 'Updating...';
+
+                fetch('/api/bulk_update_sbp_company', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        company_ids: visibleIds,
+                        new_company_id: bulkVal
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update input fields visually
+                            visibleInputs.forEach(input => {
+                                input.value = bulkVal;
+                                input.style.borderColor = '#10B981'; // Flash green
+                                setTimeout(() => input.style.borderColor = '#D1D5DB', 2000);
+                            });
+                            document.getElementById('bulkNewCompanyId').value = ''; // clear
+                            alert(`Successfully updated ${data.updated_count} rows!`);
+                        } else {
+                            console.error('Bulk update failed:', data.error);
+                            alert('Error saving data: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Network error:', error);
+                        alert('Network error while saving bulk data.');
+                    })
+                    .finally(() => {
+                        btnBulkApply.disabled = false;
+                        btnBulkApply.textContent = 'Apply to All';
+                    });
+            });
+        }
+
+        // Master Company CRUD functions
+        window.addMasterRow = function () {
+            const tbody = document.getElementById('masterTableBody');
+            const emptyPlaceholder = document.getElementById('emptyMasterRowPlaceholder');
+            if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+
+            const tr = document.createElement('tr');
+            tr.className = 'company-row is-new';
+            tr.innerHTML = `
+            <td class="company-id" style="color: #9CA3AF; font-style: italic;">Auto</td>
+            <td>
+                <select class="genre-input" style="padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+                    <option value="">- Select -</option>
+                    <option value="company">company</option>
+                    <option value="condo">condo</option>
+                    <option value="village">village</option>
+                </select>
+            </td>
+            <td class="company-name-cell">
+                <input type="text" class="company-input" placeholder="Company Name" style="padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+            </td>
+            <td class="name-eng-cell">
+                <input type="text" class="name-eng-input" placeholder="Name (Eng)" style="padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+            </td>
+            <td style="text-align: center;">
+                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                    <button onclick="saveNewMasterRow(this)" style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #10B981; color: white; border: none; cursor: pointer; font-size: 0.8rem;">Save</button>
+                    <button onclick="this.closest('tr').remove()" style="padding: 0.3rem 0.6rem; border-radius: 4px; background: #F3F4F6; color: #4B5563; border: none; cursor: pointer; font-size: 0.8rem;">Cancel</button>
+                </div>
+            </td>
+        `;
+            tbody.insertBefore(tr, tbody.firstChild);
+        };
+
+        window.saveNewMasterRow = function (btn) {
+            const tr = btn.closest('tr');
+            const genre = tr.querySelector('.genre-input').value.trim();
+            const company = tr.querySelector('.company-input').value.trim();
+            const nameEng = tr.querySelector('.name-eng-input').value.trim();
+
+            if (!company) {
+                alert('Company Name is required.');
+                return;
+            }
+
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            fetch('/api/master_company/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ genre: genre, company: company, name_eng: nameEng })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload to refresh table structure normally
+                    } else {
+                        alert('Error: ' + data.error);
+                        btn.textContent = 'Save';
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert('Network error');
+                    btn.textContent = 'Save';
+                    btn.disabled = false;
+                });
+        };
+
+        window.editMasterRow = function (btn) {
+            const tr = btn.closest('tr');
+            tr.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+            tr.querySelectorAll('.edit-mode').forEach(el => el.style.display = '');
+        };
+
+        window.cancelEditMasterRow = function (btn) {
+            const tr = btn.closest('tr');
+            tr.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+            tr.querySelectorAll('.view-mode').forEach(el => el.style.display = '');
+            // Revert inputs
+            tr.querySelector('.genre-input').value = tr.querySelector('.badge') ? tr.querySelector('.badge').textContent : '';
+            tr.querySelector('.company-input').value = tr.querySelector('.company-name-cell .view-mode').textContent;
+            const engSpan = tr.querySelector('.name-eng-cell .view-mode').textContent;
+            tr.querySelector('.name-eng-input').value = (engSpan === '-') ? '' : engSpan;
+        };
+
+        window.saveMasterRow = function (btn) {
+            const tr = btn.closest('tr');
+            const id = tr.querySelector('.company-id').textContent.trim();
+            const genre = tr.querySelector('.genre-input').value.trim();
+            const company = tr.querySelector('.company-input').value.trim();
+            const nameEng = tr.querySelector('.name-eng-input').value.trim();
+
+            if (!company) {
+                alert('Company Name is required.');
+                return;
+            }
+
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            fetch('/api/master_company/edit', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_id: id, genre: genre, company: company, name_eng: nameEng })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        btn.textContent = 'Save';
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert('Network error');
+                    btn.textContent = 'Save';
+                    btn.disabled = false;
+                });
+        };
+
+        window.deleteMasterRow = function (btn) {
+            const tr = btn.closest('tr');
+            const id = tr.querySelector('.company-id').textContent.trim();
+
+            if (!confirm(`Are you sure you want to delete company ID ${id}?`)) {
+                return;
+            }
+
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            fetch('/api/master_company/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company_id: id })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        tr.remove();
+                    } else {
+                        alert('Error: ' + data.error);
+                        btn.textContent = 'Delete';
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert('Network error');
+                    btn.textContent = 'Delete';
+                    btn.disabled = false;
+                });
+        };
+    });
+</script>
+{% endblock %}

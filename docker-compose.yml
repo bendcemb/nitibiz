@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: nitibiz_db
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_USER: bendcemb
+      POSTGRES_PASSWORD: Ben28122523!
+      POSTGRES_DB: sbp-dailyreport
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   web:
     build: .
     container_name: nitibiz_app
@@ -10,4 +23,14 @@ services:
       - .:/app
     environment:
       - FLASK_ENV=development
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=bendcemb
+      - POSTGRES_PASSWORD=Ben28122523!
+      - POSTGRES_DB=sbp-dailyreport
+    depends_on:
+      - db
     restart: unless-stopped
+
+volumes:
+  postgres_data:

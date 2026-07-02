@@ -65,6 +65,9 @@ table {
 thead {
     background-color: #F9FAFB;
     border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 th {
@@ -128,4 +131,167 @@ tbody tr:last-child td {
 
 .fade-in {
     animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Dashboard Layout */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 64px;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+}
+
+.navbar-brand .logo {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--primary-color), #818cf8);
+    border-radius: 8px;
+}
+
+.navbar-menu {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-action {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-action:hover {
+    color: var(--primary-color);
+}
+
+.app-body {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 2rem 1rem;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+}
+
+.nav-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: #F3F4F6;
+    color: var(--text-main);
+}
+
+.nav-link.active {
+    background-color: #EEF2FF;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0; /* Prevents overflow issues */
+}
+
+/* Override container for dashboard */
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2rem 2rem;
+}
+
+/* Split view for dual tables */
+.split-view {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    align-items: stretch;
+    height: calc(100vh - 180px);
+    min-height: 500px;
+}
+
+.table-card {
+    flex: 1;
+    min-width: 0;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-title {
+    padding: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.table-card-header {
+    padding: 1.5rem 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Ensure tables within cards take full width */
+.table-card table {
+    width: 100%;
 }
