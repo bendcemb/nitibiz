@@ -83,6 +83,15 @@ def company():
         """)
         sbp_companies = cursor.fetchall()
 
+        # Query สำหรับ นับข้อมูล
+        cursor.execute("""
+            SELECT 
+                COUNT(CASE WHEN new_company_id IS NULL THEN 1 END) AS not_match,
+                COUNT(CASE WHEN new_company_id = 3370  THEN 1 END) AS unknow
+            FROM public.sbp_company;
+        """)
+        count_results = cursor.fetchall()
+
         conn.close()
 
         # แปลงข้อมูลเป็น list of dictionaries
@@ -103,15 +112,45 @@ def company():
                 "company": row.get('company', '')
             })
 
+        count_data = []
+        for row in count_results:
+            count_data.append({
+                "not_match": row.get('not_match', ''),
+                "unknow": row.get('unknow', '')
+            })
+
     except Exception as e:
         error_msg = str(e)
         print(f"Database error: {error_msg}")
         master_data = []
         sbp_data = []
-        return render_template('company.html', master_data=master_data, sbp_data=sbp_data, error=error_msg)
+        count_data = []
+        return render_template('company.html', master_data=master_data, sbp_data=sbp_data, count_data=count_data, error=error_msg)
 
-    return render_template('company.html', master_data=master_data, sbp_data=sbp_data)
+    return render_template('company.html', master_data=master_data, sbp_data=sbp_data, count_data=count_data)
 
+
+@app.route('/api/sbp_stats', methods=['GET'])
+def get_sbp_stats():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute("""
+            SELECT 
+                COUNT(CASE WHEN new_company_id IS NULL THEN 1 END) AS not_match,
+                COUNT(CASE WHEN new_company_id = 3370  THEN 1 END) AS unknow
+            FROM public.sbp_company;
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        return jsonify({
+            'success': True,
+            'not_match': row.get('not_match', 0),
+            'unknow': row.get('unknow', 0)
+        })
+    except Exception as e:
+        print(f"Stats error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/update_sbp_company', methods=['POST'])
 def update_sbp_company():

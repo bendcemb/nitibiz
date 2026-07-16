@@ -1,11 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<header>
-    <h1>nitibiz - Company</h1>
-</header>
-
 <main>
+    <!-- Stats Dashboard -->
+    <div style="display: flex; gap: 0.75rem; padding: 1.5rem 2rem 0 2rem;">
+        <div style="background-color: #FEF2F2; color: #B91C1C; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #FCA5A5; display: flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Not Match: <span id="stat-not-match">{{ count_data[0]['not_match'] }}</span>
+        </div>
+        <div style="background-color: #FFFBEB; color: #D97706; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #FDE68A; display: flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Unknown: <span id="stat-unknown">{{ count_data[0]['unknow'] }}</span>
+        </div>
+    </div>
+
     <div class="table-container fade-in" style="padding: 2rem; background: transparent; box-shadow: none;">
 
         <!-- Two Tables Layout -->
@@ -47,11 +55,16 @@
                                         <span style="color: #9CA3AF;" class="badge">-</span>
                                         {% endif %}
                                     </div>
-                                    <select class="edit-mode genre-input" style="display: none; padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
-                                        <option value="" {% if not company.genre %}selected{% endif %}>- Select -</option>
-                                        <option value="company" {% if company.genre == 'company' %}selected{% endif %}>company</option>
-                                        <option value="condo" {% if company.genre == 'condo' %}selected{% endif %}>condo</option>
-                                        <option value="village" {% if company.genre == 'village' %}selected{% endif %}>village</option>
+                                    <select class="edit-mode genre-input"
+                                        style="display: none; padding: 0.4rem; border-radius: 4px; border: 1px solid #D1D5DB; width: 100%;">
+                                        <option value="" {% if not company.genre %}selected{% endif %}>- Select -
+                                        </option>
+                                        <option value="company" {% if company.genre=='company' %}selected{% endif %}>
+                                            company</option>
+                                        <option value="condo" {% if company.genre=='condo' %}selected{% endif %}>condo
+                                        </option>
+                                        <option value="village" {% if company.genre=='village' %}selected{% endif %}>
+                                            village</option>
                                     </select>
                                 </td>
                                 <td class="company-name-cell">
@@ -181,6 +194,20 @@
 </main>
 
 <script>
+        // Update stats in real-time
+        function updateSbpStats() {
+            fetch('/api/sbp_stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const notMatchEl = document.getElementById('stat-not-match');
+                        const unknownEl = document.getElementById('stat-unknown');
+                        if(notMatchEl) notMatchEl.textContent = data.not_match;
+                        if(unknownEl) unknownEl.textContent = data.unknow;
+                    }
+                })
+                .catch(err => console.error("Error fetching stats", err));
+        }
     document.addEventListener('DOMContentLoaded', function () {
         // Setup search functionality for a specific table
         function setupSearch(inputId, cardId, checkboxId = null) {
@@ -264,6 +291,7 @@
                         if (data.success) {
                             el.style.borderColor = '#10B981'; // Green
                             statusIcon.style.display = 'inline-block';
+                            updateSbpStats();
                             setTimeout(() => {
                                 el.style.borderColor = '#D1D5DB'; // Reset
                                 statusIcon.style.display = 'none';
@@ -336,6 +364,7 @@
                                 setTimeout(() => input.style.borderColor = '#D1D5DB', 2000);
                             });
                             document.getElementById('bulkNewCompanyId').value = ''; // clear
+                            updateSbpStats();
                             alert(`Successfully updated ${data.updated_count} rows!`);
                         } else {
                             console.error('Bulk update failed:', data.error);
