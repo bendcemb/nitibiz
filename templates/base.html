@@ -28,10 +28,10 @@
             <!-- Left Sidebar -->
             <aside class="sidebar">
                 <ul class="nav-list">
-                    <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link">Dashboard</a></li>
-                    <li class="nav-item"><a href="{{ url_for('company') }}" class="nav-link">Companies</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link">Daily Reports</a></li>
-                    <li class="nav-item"><a href="#" class="nav-link">Settings</a></li>
+                    <li class="nav-item"><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Dashboard</a></li>
+                    <li class="nav-item"><a href="{{ url_for('company') }}" class="nav-link {% if request.endpoint == 'company' %}active{% endif %}">Companies</a></li>
+                    <li class="nav-item"><a href="{{ url_for('dailyreport') }}" class="nav-link {% if request.endpoint == 'dailyreport' %}active{% endif %}">Daily Reports</a></li>
+                    <li class="nav-item"><a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">Settings</a></li>
                 </ul>
             </aside>
 

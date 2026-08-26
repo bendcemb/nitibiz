@@ -12,6 +12,8 @@ services:
       POSTGRES_DB: sbp-dailyreport
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - centralnet
     restart: unless-stopped
 
   web:
@@ -30,7 +32,14 @@ services:
       - POSTGRES_DB=sbp-dailyreport
     depends_on:
       - db
+    networks:
+      - centralnet
     restart: unless-stopped
 
 volumes:
   postgres_data:
+
+networks:
+  centralnet:
+    external: true
+

@@ -1,0 +1,654 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings — nitibiz{% endblock %}
+
+{% block content %}
+<div class="st-page">
+
+    <!-- ── Page Header ── -->
+    <div class="st-header">
+        <div>
+            <h1 class="st-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
+                        1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06
+                        a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+                        A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0
+                        0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33
+                        l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+                        a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Settings
+            </h1>
+            <p class="st-subtitle">ตั้งค่าและข้อมูลระบบ nitibiz</p>
+        </div>
+    </div>
+
+    <div class="st-layout">
+        <!-- ── Left: Sections nav ── -->
+        <nav class="st-sidenav">
+            <a href="#section-system" class="st-sidenav-link active-section" data-target="section-system">ข้อมูลระบบ</a>
+            <a href="#section-db"     class="st-sidenav-link" data-target="section-db">ฐานข้อมูล</a>
+            <a href="#section-display" class="st-sidenav-link" data-target="section-display">การแสดงผล</a>
+            <a href="#section-about"  class="st-sidenav-link" data-target="section-about">เกี่ยวกับ</a>
+        </nav>
+
+        <!-- ── Right: Content ── -->
+        <div class="st-content">
+
+            <!-- ── System Info ── -->
+            <section class="st-section" id="section-system">
+                <div class="st-section-header">
+                    <div class="st-section-icon st-icon-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="st-section-title">ข้อมูลระบบ</h2>
+                        <p class="st-section-desc">สภาพแวดล้อมที่ Application รันอยู่</p>
+                    </div>
+                </div>
+
+                <div class="st-info-grid">
+                    <div class="st-info-row">
+                        <span class="st-info-label">Python Version</span>
+                        <span class="st-info-val">
+                            <span class="st-chip st-chip-blue">{{ info.py_version }}</span>
+                        </span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">Operating System</span>
+                        <span class="st-info-val">{{ info.os_info }}</span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">Flask Environment</span>
+                        <span class="st-info-val">
+                            <span class="st-chip st-chip-yellow">Development</span>
+                        </span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">App Version</span>
+                        <span class="st-info-val">
+                            <span class="st-chip st-chip-purple">v1.0.0</span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Database ── -->
+            <section class="st-section" id="section-db">
+                <div class="st-section-header">
+                    <div class="st-section-icon st-icon-green">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="st-section-title">ฐานข้อมูล</h2>
+                        <p class="st-section-desc">การเชื่อมต่อ PostgreSQL</p>
+                    </div>
+                </div>
+
+                <div class="st-info-grid">
+                    <div class="st-info-row">
+                        <span class="st-info-label">Host</span>
+                        <span class="st-info-val st-mono">{{ info.db_host }}</span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">Port</span>
+                        <span class="st-info-val st-mono">{{ info.db_port }}</span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">Database</span>
+                        <span class="st-info-val st-mono">{{ info.db_name }}</span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">User</span>
+                        <span class="st-info-val st-mono">{{ info.db_user }}</span>
+                    </div>
+                    <div class="st-info-row">
+                        <span class="st-info-label">สถานะการเชื่อมต่อ</span>
+                        <span class="st-info-val">
+                            <span class="st-status-dot"></span>
+                            <span id="dbStatusText">กำลังตรวจสอบ...</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.25rem;">
+                    <button id="btnTestDb" class="st-btn-outline" onclick="testDbConnection()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        ทดสอบการเชื่อมต่อ
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── Display ── -->
+            <section class="st-section" id="section-display">
+                <div class="st-section-header">
+                    <div class="st-section-icon st-icon-purple">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="st-section-title">การแสดงผล</h2>
+                        <p class="st-section-desc">ปรับแต่งการแสดงผลของ Application</p>
+                    </div>
+                </div>
+
+                <div class="st-toggle-list">
+                    <div class="st-toggle-row">
+                        <div class="st-toggle-info">
+                            <span class="st-toggle-label">แสดงจำนวนรายการในตาราง</span>
+                            <span class="st-toggle-desc">แสดง footer บอกจำนวน record ที่เห็น</span>
+                        </div>
+                        <label class="st-toggle">
+                            <input type="checkbox" id="toggleRowCount" checked onchange="savePref('rowCount', this.checked)">
+                            <span class="st-toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="st-toggle-row">
+                        <div class="st-toggle-info">
+                            <span class="st-toggle-label">ยืนยันก่อนลบทุกครั้ง</span>
+                            <span class="st-toggle-desc">แสดง confirm dialog ก่อนลบข้อมูล</span>
+                        </div>
+                        <label class="st-toggle">
+                            <input type="checkbox" id="toggleConfirmDelete" checked onchange="savePref('confirmDelete', this.checked)">
+                            <span class="st-toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="st-toggle-row">
+                        <div class="st-toggle-info">
+                            <span class="st-toggle-label">Toast notifications</span>
+                            <span class="st-toggle-desc">แสดงการแจ้งเตือนมุมล่างขวาหลังบันทึกข้อมูล</span>
+                        </div>
+                        <label class="st-toggle">
+                            <input type="checkbox" id="toggleToast" checked onchange="savePref('toast', this.checked)">
+                            <span class="st-toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── About ── -->
+            <section class="st-section" id="section-about">
+                <div class="st-section-header">
+                    <div class="st-section-icon st-icon-orange">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="st-section-title">เกี่ยวกับ nitibiz</h2>
+                        <p class="st-section-desc">ข้อมูลเกี่ยวกับ Application</p>
+                    </div>
+                </div>
+
+                <div class="st-about-card">
+                    <div class="st-about-logo">
+                        <div class="st-about-logo-box"></div>
+                        <div>
+                            <div class="st-about-name">nitibiz</div>
+                            <div class="st-about-tagline">Daily Report & Company Management System</div>
+                        </div>
+                    </div>
+                    <p class="st-about-desc">
+                        ระบบจัดการข้อมูลบริษัทและบันทึกรายงานประจำวัน พัฒนาด้วย Flask + PostgreSQL
+                        ออกแบบเพื่อรองรับการทำงานภายในองค์กร
+                    </p>
+                    <div class="st-about-meta">
+                        <div class="st-about-meta-item">
+                            <span class="st-about-meta-label">Stack</span>
+                            <span>Python · Flask · PostgreSQL · Vanilla JS</span>
+                        </div>
+                        <div class="st-about-meta-item">
+                            <span class="st-about-meta-label">Version</span>
+                            <span>1.0.0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- /st-content -->
+    </div><!-- /st-layout -->
+</div><!-- /st-page -->
+
+
+<style>
+/* ── Settings Page ── */
+.st-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Header */
+.st-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+    margin-bottom: 0.2rem;
+}
+.st-title svg { color: var(--primary-color); flex-shrink: 0; }
+.st-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+/* Two-column layout */
+.st-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+/* Left nav */
+.st-sidenav {
+    width: 170px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    position: sticky;
+    top: 80px;
+}
+.st-sidenav-link {
+    display: block;
+    padding: 0.55rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+}
+.st-sidenav-link:hover {
+    background: #F3F4F6;
+    color: var(--text-main);
+}
+.st-sidenav-link.active-section {
+    background: #EEF2FF;
+    color: var(--primary-color);
+    font-weight: 600;
+    border-left-color: var(--primary-color);
+}
+
+/* Content */
+.st-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Sections */
+.st-section {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--border-color);
+    scroll-margin-top: 80px;
+    transition: box-shadow 0.2s;
+}
+.st-section:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+}
+
+.st-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.st-section-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.st-icon-blue   { background:#DBEAFE; color:#1D4ED8; }
+.st-icon-green  { background:#DCFCE7; color:#15803D; }
+.st-icon-purple { background:#EDE9FE; color:#7C3AED; }
+.st-icon-orange { background:#FEF3C7; color:#D97706; }
+
+.st-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 0.2rem;
+}
+.st-section-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Info rows */
+.st-info-grid { display: flex; flex-direction: column; gap: 0; }
+.st-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+}
+.st-info-row:last-child { border-bottom: none; }
+.st-info-label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 160px;
+}
+.st-info-val {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: right;
+}
+.st-mono {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: #F3F4F6;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    color: #374151;
+}
+
+/* Chips */
+.st-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.st-chip-blue   { background:#DBEAFE; color:#1D4ED8; }
+.st-chip-yellow { background:#FEF9C3; color:#A16207; }
+.st-chip-purple { background:#EDE9FE; color:#7C3AED; }
+.st-chip-green  { background:#DCFCE7; color:#15803D; }
+.st-chip-red    { background:#FEE2E2; color:#DC2626; }
+
+/* DB Status dot */
+.st-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9CA3AF;
+    display: inline-block;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+}
+.st-status-dot.connected    { background: #10B981; animation: none; }
+.st-status-dot.disconnected { background: #EF4444; animation: none; }
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+/* Outline button */
+.st-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.st-btn-outline:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: #EEF2FF;
+}
+.st-btn-outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Toggles */
+.st-toggle-list { display: flex; flex-direction: column; gap: 0; }
+.st-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 2rem;
+}
+.st-toggle-row:last-child { border-bottom: none; }
+.st-toggle-info { display: flex; flex-direction: column; gap: 0.15rem; }
+.st-toggle-label { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+.st-toggle-desc  { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Toggle switch */
+.st-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.st-toggle input { opacity: 0; width: 0; height: 0; }
+.st-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #D1D5DB;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.st-toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    left: 3px;
+    top: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.st-toggle input:checked + .st-toggle-slider { background: var(--primary-color); }
+.st-toggle input:checked + .st-toggle-slider:before { transform: translateX(20px); }
+
+/* About card */
+.st-about-card {
+    background: linear-gradient(135deg, #F5F3FF 0%, #EEF2FF 100%);
+    border: 1px solid #DDD6FE;
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.st-about-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.st-about-logo-box {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary-color), #818CF8);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+.st-about-name    { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
+.st-about-tagline { font-size: 0.82rem; color: var(--text-muted); }
+.st-about-desc    { font-size: 0.88rem; color: #374151; line-height: 1.65; }
+.st-about-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #DDD6FE;
+}
+.st-about-meta-item {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.st-about-meta-label { font-weight: 600; color: var(--text-main); min-width: 70px; }
+</style>
+
+
+<script>
+// ── Scroll spy: highlight sidenav ──
+document.addEventListener('DOMContentLoaded', function () {
+    loadPrefs();
+
+    const sections = document.querySelectorAll('.st-section');
+    const links    = document.querySelectorAll('.st-sidenav-link');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                links.forEach(link => {
+                    link.classList.toggle('active-section', link.dataset.target === id);
+                });
+            }
+        });
+    }, { threshold: 0.4 });
+
+    sections.forEach(s => observer.observe(s));
+
+    // smooth scroll on sidenav click
+    links.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.getElementById(link.dataset.target);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // auto test DB on load
+    testDbConnection();
+});
+
+// ── DB Connection Test ──
+function testDbConnection() {
+    const btn  = document.getElementById('btnTestDb');
+    const dot  = document.querySelector('.st-status-dot');
+    const text = document.getElementById('dbStatusText');
+
+    btn.disabled = true;
+    dot.className  = 'st-status-dot';
+    text.textContent = 'กำลังตรวจสอบ...';
+
+    fetch('/api/sbp_stats')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success !== false) {
+            dot.className  = 'st-status-dot connected';
+            text.innerHTML = '<span style="color:#15803D; font-weight:600;">เชื่อมต่อสำเร็จ ✓</span>';
+        } else {
+            throw new Error(data.error || 'Unknown error');
+        }
+    })
+    .catch(err => {
+        dot.className  = 'st-status-dot disconnected';
+        text.innerHTML = `<span style="color:#DC2626; font-weight:600;">เชื่อมต่อไม่ได้ ✗</span>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+    });
+}
+
+// ── Preferences (localStorage) ──
+function savePref(key, value) {
+    const prefs = JSON.parse(localStorage.getItem('nitibiz_prefs') || '{}');
+    prefs[key] = value;
+    localStorage.setItem('nitibiz_prefs', JSON.stringify(prefs));
+    showSavedToast();
+}
+
+function loadPrefs() {
+    const prefs = JSON.parse(localStorage.getItem('nitibiz_prefs') || '{}');
+    if (prefs.rowCount !== undefined)
+        document.getElementById('toggleRowCount').checked = prefs.rowCount;
+    if (prefs.confirmDelete !== undefined)
+        document.getElementById('toggleConfirmDelete').checked = prefs.confirmDelete;
+    if (prefs.toast !== undefined)
+        document.getElementById('toggleToast').checked = prefs.toast;
+}
+
+let toastTimer = null;
+function showSavedToast() {
+    const ex = document.querySelector('.st-saved-toast');
+    if (ex) ex.remove();
+    if (toastTimer) clearTimeout(toastTimer);
+
+    const el = document.createElement('div');
+    el.className = 'st-saved-toast';
+    el.style.cssText = `
+        position: fixed; bottom: 2rem; right: 2rem;
+        background: #1F2937; color: #fff;
+        padding: 0.75rem 1.25rem; border-radius: 12px;
+        font-size: 0.88rem; font-weight: 500;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        display: flex; align-items: center; gap: 0.5rem;
+        border-left: 4px solid #10B981;
+        animation: toastIn 0.3s ease;
+        z-index: 999;
+    `;
+    el.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+            fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        บันทึกการตั้งค่าเรียบร้อย
+    `;
+    document.body.appendChild(el);
+    toastTimer = setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.4s';
+        setTimeout(() => el.remove(), 400);
+    }, 2500);
+}
+</script>
+
+{% endblock %}

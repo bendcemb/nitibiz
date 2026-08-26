@@ -1,25 +1,19 @@
 from flask import Flask, render_template, request, jsonify
 import psycopg2
 import psycopg2.extras
-import os
+import config
 
 app = Flask(__name__)
 
-# กำหนดค่าการเชื่อมต่อ PostgreSQL จาก Environment Variables
-HOST = os.environ.get('POSTGRES_HOST', 'localhost')
-PORT = os.environ.get('POSTGRES_PORT', '5432')
-DATABASE = os.environ.get('POSTGRES_DB', 'sbp-dailyreport')
-USERNAME = os.environ.get('POSTGRES_USER', 'bendcemb')
-PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'Ben28122523!')
 
 def get_db_connection():
     # Connection String สำหรับ PostgreSQL
     conn = psycopg2.connect(
-        host=HOST,
-        port=PORT,
-        dbname=DATABASE,
-        user=USERNAME,
-        password=PASSWORD
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        dbname=config.DB_NAME,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD
     )
     return conn
 
@@ -296,6 +290,200 @@ def delete_master_company():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/dailyreport')
+def dailyreport():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        # ดึงรายงานทั้งหมด เรียงจากวันใหม่สุด
+        cursor.execute("""
+            SELECT id, report_date, title, description, status,
+                   created_at, updated_at
+            FROM daily_reports
+            ORDER BY report_date DESC, id DESC
+            LIMIT 500
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+
+        reports = []
+        for row in rows:
+            reports.append({
+                "id":          row.get('id'),
+                "report_date": str(row.get('report_date', '')),
+                "title":       row.get('title', ''),
+                "description": row.get('description', ''),
+                "status":      row.get('status', 'in_progress'),
+                "created_at":  str(row.get('created_at', '')),
+                "updated_at":  str(row.get('updated_at', '')),
+            })
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Daily report DB error: {error_msg}")
+        reports = []
+        return render_template('dailyreport.html', reports=reports, error=error_msg)
+
+    return render_template('dailyreport.html', reports=reports)
+
+
+# ── Daily Report API ──────────────────────────────────────────────────────────
+
+@app.route('/api/daily_reports', methods=['GET'])
+def api_get_daily_reports():
+    """ดึงรายงานทั้งหมด (รองรับ filter date)"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        date_filter = request.args.get('date')
+        if date_filter:
+            cursor.execute("""
+                SELECT id, report_date, title, description, status, created_at, updated_at
+                FROM daily_reports
+                WHERE report_date = %s
+                ORDER BY id DESC
+            """, (date_filter,))
+        else:
+            cursor.execute("""
+                SELECT id, report_date, title, description, status, created_at, updated_at
+                FROM daily_reports
+                ORDER BY report_date DESC, id DESC
+                LIMIT 500
+            """)
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        reports = [
+            {
+                "id":          row['id'],
+                "report_date": str(row['report_date']),
+                "title":       row['title'],
+                "description": row['description'] or '',
+                "status":      row['status'],
+                "created_at":  str(row['created_at']),
+                "updated_at":  str(row['updated_at']),
+            }
+            for row in rows
+        ]
+        return jsonify({'success': True, 'reports': reports})
+
+    except Exception as e:
+        print(f"GET daily_reports error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/daily_reports', methods=['POST'])
+def api_add_daily_report():
+    """เพิ่มรายงานใหม่"""
+    try:
+        data = request.get_json()
+        report_date = data.get('report_date')
+        title       = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        status      = data.get('status', 'in_progress')
+
+        if not title:
+            return jsonify({'success': False, 'error': 'title is required'}), 400
+        if not report_date:
+            return jsonify({'success': False, 'error': 'report_date is required'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute("""
+            INSERT INTO daily_reports (report_date, title, description, status)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, report_date, title, description, status, created_at, updated_at
+        """, (report_date, title, description, status))
+        row = cursor.fetchone()
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'report': {
+                "id":          row['id'],
+                "report_date": str(row['report_date']),
+                "title":       row['title'],
+                "description": row['description'] or '',
+                "status":      row['status'],
+                "created_at":  str(row['created_at']),
+                "updated_at":  str(row['updated_at']),
+            }
+        })
+
+    except Exception as e:
+        print(f"POST daily_reports error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/daily_reports/<int:report_id>', methods=['PUT'])
+def api_update_daily_report(report_id):
+    """แก้ไขรายงาน"""
+    try:
+        data = request.get_json()
+        report_date = data.get('report_date')
+        title       = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        status      = data.get('status', 'in_progress')
+
+        if not title:
+            return jsonify({'success': False, 'error': 'title is required'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE daily_reports
+            SET report_date = %s,
+                title       = %s,
+                description = %s,
+                status      = %s,
+                updated_at  = NOW()
+            WHERE id = %s
+        """, (report_date, title, description, status, report_id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"PUT daily_reports error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/daily_reports/<int:report_id>', methods=['DELETE'])
+def api_delete_daily_report(report_id):
+    """ลบรายงาน"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM daily_reports WHERE id = %s", (report_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"DELETE daily_reports error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+
+@app.route('/settings')
+def settings():
+    import platform, sys
+    info = {
+        'db_host':   config.DB_HOST,
+        'db_port':   config.DB_PORT,
+        'db_name':   config.DB_NAME,
+        'db_user':   config.DB_USER,
+        'py_version': sys.version.split()[0],
+        'os_info':    platform.system() + ' ' + platform.release(),
+    }
+    return render_template('setting.html', info=info)
+
+
 if __name__ == '__main__':
+
     # กำหนด host='0.0.0.0' เพื่อให้สามารถเข้าถึงจากภายนอก Container ได้
     app.run(host='0.0.0.0', port=5000, debug=True)

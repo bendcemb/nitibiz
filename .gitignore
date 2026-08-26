@@ -7,3 +7,8 @@ env/
 venv/
 .env
 .DS_Store
+
+# ไฟล์ข้อมูลขนาดใหญ่ — ไม่ commit เข้า git
+data/
+*.sql
+*.csv

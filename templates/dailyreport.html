@@ -1,0 +1,866 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Reports — nitibiz{% endblock %}
+
+{% block content %}
+<div class="dr-page">
+
+    <!-- ── Page Header ── -->
+    <div class="dr-header">
+        <div>
+            <h1 class="dr-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Daily Reports
+            </h1>
+            <p class="dr-subtitle">บันทึกและติดตามงานประจำวัน</p>
+        </div>
+        <button id="btnOpenModal" class="dr-btn-primary" onclick="openModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            เพิ่มรายงาน
+        </button>
+    </div>
+
+    <!-- ── Summary Stats ── -->
+    <div class="dr-stats-row" id="statsRow">
+        <div class="dr-stat-chip dr-stat-total">
+            <span class="dr-stat-label">ทั้งหมด</span>
+            <span class="dr-stat-val" id="statTotal">0</span>
+        </div>
+        <div class="dr-stat-chip dr-stat-inprog">
+            <span class="dr-stat-label">กำลังดำเนินการ</span>
+            <span class="dr-stat-val" id="statInprog">0</span>
+        </div>
+        <div class="dr-stat-chip dr-stat-done">
+            <span class="dr-stat-label">เสร็จแล้ว</span>
+            <span class="dr-stat-val" id="statDone">0</span>
+        </div>
+        <div class="dr-stat-chip dr-stat-issue">
+            <span class="dr-stat-label">มีปัญหา</span>
+            <span class="dr-stat-val" id="statIssue">0</span>
+        </div>
+    </div>
+
+    <!-- ── Filters ── -->
+    <div class="dr-filters">
+        <div class="dr-search-wrap">
+            <svg class="dr-search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="searchInput" type="text" class="dr-input" placeholder="ค้นหาหัวข้อ..." oninput="filterRows()">
+        </div>
+        <input id="filterDate" type="date" class="dr-input" title="กรองตามวันที่" onchange="filterRows()">
+        <select id="filterStatus" class="dr-input" onchange="filterRows()">
+            <option value="">สถานะทั้งหมด</option>
+            <option value="in_progress">กำลังดำเนินการ</option>
+            <option value="done">เสร็จแล้ว</option>
+            <option value="issue">มีปัญหา</option>
+            <option value="cancelled">ยกเลิก</option>
+        </select>
+        <button class="dr-btn-ghost" onclick="clearFilters()">ล้างตัวกรอง</button>
+    </div>
+
+    <!-- ── Error Banner ── -->
+    {% if error %}
+    <div class="dr-error-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <strong>ไม่สามารถเชื่อมต่อฐานข้อมูลได้:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- ── Table ── -->
+    <div class="dr-table-card">
+        <div class="dr-table-wrap">
+            <table id="reportTable">
+                <thead>
+                    <tr>
+                        <th style="width:120px;">วันที่</th>
+                        <th>หัวข้องาน</th>
+                        <th style="width:220px;">รายละเอียด</th>
+                        <th style="width:140px;">สถานะ</th>
+                        <th style="width:90px; text-align:center;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    {% for r in reports %}
+                    <tr class="dr-row"
+                        data-id="{{ r.id }}"
+                        data-date="{{ r.report_date }}"
+                        data-title="{{ r.title | e }}"
+                        data-desc="{{ (r.description or '') | e }}"
+                        data-status="{{ r.status }}">
+                        <td class="dr-cell-date">{{ r.report_date }}</td>
+                        <td class="dr-cell-title">{{ r.title }}</td>
+                        <td class="dr-cell-desc">{{ r.description if r.description else '—' }}</td>
+                        <td><span class="dr-badge dr-badge-{{ r.status }}">{{ r.status | replace('_', ' ') | title }}</span></td>
+                        <td class="dr-cell-actions">
+                            <button class="dr-action-btn dr-btn-edit" title="แก้ไข"
+                                onclick="editReportFromRow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="dr-action-btn dr-btn-delete" title="ลบ"
+                                onclick="deleteReportFromRow(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr id="emptyRow">
+                        <td colspan="5" class="dr-empty-cell">
+                            {% if not error %}
+                            <div class="dr-empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round" stroke-linejoin="round" style="color:#D1D5DB;">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <p>ยังไม่มีรายงาน — กด <strong>เพิ่มรายงาน</strong> เพื่อเริ่มต้น</p>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="dr-table-footer">
+            <span id="rowCountLabel" class="dr-row-count"></span>
+        </div>
+    </div>
+
+</div><!-- /dr-page -->
+
+
+<!-- ── Modal ── -->
+<div id="drModal" class="dr-modal-overlay" style="display:none;" onclick="handleOverlayClick(event)">
+    <div class="dr-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="dr-modal-header">
+            <h2 id="modalTitle" class="dr-modal-title">เพิ่มรายงานงานประจำวัน</h2>
+            <button class="dr-modal-close" onclick="closeModal()" aria-label="ปิด">&times;</button>
+        </div>
+        <form id="reportForm" onsubmit="submitReport(event)">
+            <input type="hidden" id="editId" value="">
+
+            <div class="dr-form-row">
+                <label for="formDate" class="dr-label">วันที่ <span class="dr-required">*</span></label>
+                <input id="formDate" type="date" class="dr-input dr-input-full" required>
+            </div>
+
+            <div class="dr-form-row">
+                <label for="formTitle" class="dr-label">หัวข้องาน <span class="dr-required">*</span></label>
+                <input id="formTitle" type="text" class="dr-input dr-input-full"
+                    placeholder="เช่น ประชุมทีม, วิเคราะห์ข้อมูล SBP..." required maxlength="255">
+            </div>
+
+            <div class="dr-form-row">
+                <label for="formDesc" class="dr-label">รายละเอียด</label>
+                <textarea id="formDesc" class="dr-input dr-input-full dr-textarea"
+                    placeholder="อธิบายรายละเอียดของงาน..." rows="4"></textarea>
+            </div>
+
+            <div class="dr-form-row">
+                <label for="formStatus" class="dr-label">สถานะ</label>
+                <select id="formStatus" class="dr-input dr-input-full">
+                    <option value="in_progress">🔄 กำลังดำเนินการ</option>
+                    <option value="done">✅ เสร็จแล้ว</option>
+                    <option value="issue">⚠️ มีปัญหา</option>
+                    <option value="cancelled">🚫 ยกเลิก</option>
+                </select>
+            </div>
+
+            <div class="dr-modal-footer">
+                <button type="button" class="dr-btn-ghost" onclick="closeModal()">ยกเลิก</button>
+                <button type="submit" id="submitBtn" class="dr-btn-primary">
+                    <span id="submitLabel">บันทึก</span>
+                    <span id="submitSpinner" class="dr-spinner" style="display:none;"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<style>
+/* ── Daily Report Page Styles ── */
+.dr-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+.dr-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.dr-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+    margin-bottom: 0.2rem;
+}
+.dr-title svg { color: var(--primary-color); flex-shrink: 0; }
+.dr-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+/* Stats row */
+.dr-stats-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.dr-stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+.dr-stat-label { opacity: 0.85; }
+.dr-stat-val { font-size: 1rem; font-weight: 800; }
+.dr-stat-total  { background:#EEF2FF; color:#4338CA; border-color:#C7D2FE; }
+.dr-stat-inprog { background:#EFF6FF; color:#1D4ED8; border-color:#BFDBFE; }
+.dr-stat-done   { background:#F0FDF4; color:#15803D; border-color:#BBF7D0; }
+.dr-stat-issue  { background:#FFF7ED; color:#C2410C; border-color:#FED7AA; }
+
+/* Filters */
+.dr-filters {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.dr-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+.dr-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.dr-search-wrap .dr-input { padding-left: 2.25rem; width: 100%; }
+
+/* Inputs */
+.dr-input {
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    background: var(--card-bg);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dr-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+}
+.dr-input-full { width: 100%; }
+.dr-textarea { resize: vertical; min-height: 90px; }
+
+/* Buttons */
+.dr-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+    white-space: nowrap;
+}
+.dr-btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+}
+.dr-btn-primary:active { transform: translateY(0); }
+
+.dr-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.dr-btn-ghost:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: #EEF2FF;
+}
+
+/* Error banner */
+.dr-error-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FCA5A5;
+    border-radius: 10px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+.dr-error-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+/* Table card */
+.dr-table-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.dr-table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 380px);
+    min-height: 220px;
+}
+.dr-table-footer {
+    padding: 0.7rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: #FAFAFA;
+}
+.dr-row-count { font-size: 0.82rem; color: var(--text-muted); }
+
+/* Badges */
+.dr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.dr-badge-in_progress { background:#EFF6FF; color:#1D4ED8; }
+.dr-badge-done        { background:#F0FDF4; color:#15803D; }
+.dr-badge-issue       { background:#FFF7ED; color:#C2410C; }
+.dr-badge-cancelled   { background:#F3F4F6; color:#6B7280; }
+
+/* Table rows */
+.dr-row { animation: fadeInUp 0.35s ease both; }
+.dr-cell-date  { font-weight: 600; color: #374151; white-space: nowrap; font-size: 0.88rem; }
+.dr-cell-title { font-weight: 500; color: var(--text-main); }
+.dr-cell-desc  { color: var(--text-muted); font-size: 0.88rem; }
+.dr-cell-actions { text-align: center; white-space: nowrap; }
+
+.dr-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+}
+.dr-action-btn:hover { transform: scale(1.1); }
+.dr-btn-edit   { background:#E0E7FF; color:#4338CA; }
+.dr-btn-edit:hover { background:#C7D2FE; }
+.dr-btn-delete { background:#FEE2E2; color:#DC2626; margin-left: 4px; }
+.dr-btn-delete:hover { background:#FECACA; }
+
+/* Hidden rows (filter) */
+.dr-row-hidden { display: none; }
+
+/* Empty state */
+.dr-empty-cell { text-align: center; padding: 3.5rem 1rem; }
+.dr-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Modal */
+.dr-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: overlayIn 0.2s ease;
+}
+@keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
+
+.dr-modal {
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    width: 100%;
+    max-width: 520px;
+    animation: modalSlideIn 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes modalSlideIn {
+    from { opacity:0; transform: translateY(24px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.dr-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1.75rem 0;
+}
+.dr-modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.dr-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #F3F4F6;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+.dr-modal-close:hover { background: #FEE2E2; color: #DC2626; }
+
+.dr-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem 1.75rem 0;
+}
+.dr-label { font-size: 0.85rem; font-weight: 600; color: #374151; }
+.dr-required { color: #EF4444; }
+
+.dr-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem 1.75rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1.25rem;
+}
+
+/* Spinner */
+.dr-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.dr-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #1F2937;
+    color: #fff;
+    padding: 0.8rem 1.4rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 999;
+    animation: toastIn 0.35s cubic-bezier(0.16,1,0.3,1);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: 340px;
+}
+.dr-toast.success { border-left: 4px solid #10B981; }
+.dr-toast.error   { border-left: 4px solid #EF4444; }
+@keyframes toastIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+}
+</style>
+
+
+<script>
+// ── State ──
+let allRows = [];
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', function () {
+    cacheRows();
+    updateStats();
+    updateRowCount();
+    setDefaultDate();
+});
+
+function setDefaultDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('formDate').value = today;
+}
+
+
+
+// ── Cache & Stats ──
+function cacheRows() {
+    allRows = Array.from(document.querySelectorAll('#reportTableBody .dr-row'));
+}
+
+function updateStats() {
+    let total = 0, inprog = 0, done = 0, issue = 0;
+    allRows.forEach(r => {
+        total++;
+        const s = r.dataset.status;
+        if (s === 'in_progress') inprog++;
+        else if (s === 'done')   done++;
+        else if (s === 'issue')  issue++;
+    });
+    document.getElementById('statTotal').textContent  = total;
+    document.getElementById('statInprog').textContent = inprog;
+    document.getElementById('statDone').textContent   = done;
+    document.getElementById('statIssue').textContent  = issue;
+}
+
+function updateRowCount() {
+    const visible = allRows.filter(r => !r.classList.contains('dr-row-hidden')).length;
+    document.getElementById('rowCountLabel').textContent =
+        `แสดง ${visible} จาก ${allRows.length} รายการ`;
+}
+
+// ── Filter ──
+function filterRows() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const date   = document.getElementById('filterDate').value;
+    const status = document.getElementById('filterStatus').value;
+
+    allRows.forEach(row => {
+        const rowTitle  = (row.dataset.title  || '').toLowerCase();
+        const rowDesc   = (row.dataset.desc   || '').toLowerCase();
+        const rowDate   = row.dataset.date    || '';
+        const rowStatus = row.dataset.status  || '';
+
+        const ok = (!search || rowTitle.includes(search) || rowDesc.includes(search))
+                && (!date   || rowDate   === date)
+                && (!status || rowStatus === status);
+
+        row.classList.toggle('dr-row-hidden', !ok);
+    });
+
+    updateRowCount();
+    toggleEmptyRow();
+}
+
+function toggleEmptyRow() {
+    const emptyRow = document.getElementById('emptyRow');
+    if (!emptyRow) return;
+    const visible = allRows.filter(r => !r.classList.contains('dr-row-hidden')).length;
+    emptyRow.style.display = (visible === 0 && allRows.length > 0) ? '' : 'none';
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value  = '';
+    document.getElementById('filterDate').value   = '';
+    document.getElementById('filterStatus').value = '';
+    filterRows();
+}
+
+// ── Modal ──
+function openModal(isEdit) {
+    if (!isEdit) {
+        document.getElementById('reportForm').reset();
+        document.getElementById('editId').value = '';
+        setDefaultDate();
+        document.getElementById('modalTitle').textContent   = 'เพิ่มรายงานงานประจำวัน';
+        document.getElementById('submitLabel').textContent  = 'บันทึก';
+    }
+    document.getElementById('drModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('formTitle').focus(), 100);
+}
+
+function closeModal() {
+    document.getElementById('drModal').style.display = 'none';
+}
+
+function handleOverlayClick(e) {
+    if (e.target === document.getElementById('drModal')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── CRUD ──
+function submitReport(e) {
+    e.preventDefault();
+    const id     = document.getElementById('editId').value;
+    const date   = document.getElementById('formDate').value;
+    const title  = document.getElementById('formTitle').value.trim();
+    const desc   = document.getElementById('formDesc').value.trim();
+    const status = document.getElementById('formStatus').value;
+
+    setSubmitLoading(true);
+
+    const url    = id ? `/api/daily_reports/${id}` : '/api/daily_reports';
+    const method = id ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ report_date: date, title, description: desc, status })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            closeModal();
+            showToast(id ? 'อัปเดตรายงานเรียบร้อย' : 'เพิ่มรายงานเรียบร้อย', 'success');
+            if (id) {
+                updateRowInDOM(id, date, title, desc, status);
+            } else {
+                addRowToDOM(data.report);
+            }
+            cacheRows();
+            updateStats();
+            updateRowCount();
+        } else {
+            showToast('เกิดข้อผิดพลาด: ' + data.error, 'error');
+        }
+    })
+    .catch(() => showToast('ไม่สามารถเชื่อมต่อ server ได้', 'error'))
+    .finally(() => setSubmitLoading(false));
+}
+
+// ── Wrappers: อ่านข้อมูลจาก data-* แทน onclick inline args ──
+function editReportFromRow(btn) {
+    const row = btn.closest('.dr-row');
+    editReport(
+        row.dataset.id,
+        row.dataset.date,
+        row.dataset.title,
+        row.dataset.desc,
+        row.dataset.status
+    );
+}
+
+function deleteReportFromRow(btn) {
+    const row = btn.closest('.dr-row');
+    deleteReport(row.dataset.id, btn);
+}
+
+function editReport(id, date, title, desc, status) {
+    document.getElementById('editId').value     = id;
+    document.getElementById('formDate').value   = date;
+    document.getElementById('formTitle').value  = title;
+    document.getElementById('formDesc').value   = desc || '';
+    document.getElementById('formStatus').value = status;
+    document.getElementById('modalTitle').textContent  = 'แก้ไขรายงาน';
+    document.getElementById('submitLabel').textContent = 'อัปเดต';
+    openModal(true);
+}
+
+function deleteReport(id, btn) {
+    if (!confirm('ต้องการลบรายงานนี้ใช่หรือไม่?')) return;
+    btn.disabled = true;
+    fetch(`/api/daily_reports/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.querySelector(`.dr-row[data-id="${id}"]`);
+            if (row) {
+                row.style.transition = 'opacity 0.3s, transform 0.3s';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(8px)';
+                setTimeout(() => {
+                    row.remove();
+                    cacheRows();
+                    updateStats();
+                    updateRowCount();
+                    toggleEmptyRow();
+                }, 300);
+            }
+            showToast('ลบรายงานเรียบร้อย', 'success');
+        } else {
+            showToast('ลบไม่สำเร็จ: ' + data.error, 'error');
+            btn.disabled = false;
+        }
+    })
+    .catch(() => { showToast('ไม่สามารถเชื่อมต่อ server ได้', 'error'); btn.disabled = false; });
+}
+
+// ── DOM helpers ──
+function statusLabel(s) {
+    return { in_progress:'In Progress', done:'Done', issue:'Issue', cancelled:'Cancelled' }[s] || s;
+}
+
+function addRowToDOM(r) {
+    const tbody = document.getElementById('reportTableBody');
+    const emptyRow = document.getElementById('emptyRow');
+    if (emptyRow) emptyRow.style.display = 'none';
+    const tr = document.createElement('tr');
+    tr.className = 'dr-row';
+    tr.dataset.id     = r.id;
+    tr.dataset.date   = r.report_date;
+    tr.dataset.title  = r.title;
+    tr.dataset.desc   = r.description || '';
+    tr.dataset.status = r.status;
+    tr.innerHTML = buildRowHTML(r);
+    tbody.insertBefore(tr, tbody.firstChild);
+}
+
+function updateRowInDOM(id, date, title, desc, status) {
+    const row = document.querySelector(`.dr-row[data-id="${id}"]`);
+    if (!row) return;
+    row.dataset.date   = date;
+    row.dataset.title  = title;
+    row.dataset.desc   = desc;
+    row.dataset.status = status;
+    row.innerHTML = buildRowHTML({ id, report_date: date, title, description: desc, status });
+}
+
+function buildRowHTML(r) {
+    const safeTitle = escapeAttr(r.title || '');
+    const safeDesc  = escapeAttr(r.description || '');
+    return `
+        <td class="dr-cell-date">${escapeHtml(r.report_date)}</td>
+        <td class="dr-cell-title">${escapeHtml(r.title)}</td>
+        <td class="dr-cell-desc">${r.description ? escapeHtml(r.description) : '—'}</td>
+        <td><span class="dr-badge dr-badge-${r.status}">${statusLabel(r.status)}</span></td>
+        <td class="dr-cell-actions">
+            <button class="dr-action-btn dr-btn-edit" title="แก้ไข"
+                onclick="editReportFromRow(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </button>
+            <button class="dr-action-btn dr-btn-delete" title="ลบ"
+                onclick="deleteReportFromRow(this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                    <path d="M10 11v6"></path><path d="M14 11v6"></path>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                </svg>
+            </button>
+        </td>
+    `;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// สำหรับ set ค่าใน HTML attribute (data-*) — escape double-quote เท่านั้น
+function escapeAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;');
+}
+
+// ── UI helpers ──
+function setSubmitLoading(loading) {
+    const btn     = document.getElementById('submitBtn');
+    const label   = document.getElementById('submitLabel');
+    const spinner = document.getElementById('submitSpinner');
+    btn.disabled        = loading;
+    label.style.display   = loading ? 'none' : '';
+    spinner.style.display = loading ? '' : 'none';
+}
+
+let toastTimer = null;
+function showToast(msg, type) {
+    const ex = document.querySelector('.dr-toast');
+    if (ex) ex.remove();
+    if (toastTimer) clearTimeout(toastTimer);
+    const el = document.createElement('div');
+    el.className = `dr-toast ${type}`;
+    const icon = type === 'success'
+        ? '<polyline points="20 6 9 17 4 12"></polyline>'
+        : '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>';
+    el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${escapeHtml(msg)}`;
+    document.body.appendChild(el);
+    toastTimer = setTimeout(() => {
+        el.style.transition = 'opacity 0.4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 3000);
+}
+</script>
+
+{% endblock %}
